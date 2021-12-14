@@ -3,38 +3,74 @@ package mysqlqueue
 import (
 	"database/sql"
 	"fmt"
+	"log"
+	"strings"
 
 	_ "github.com/go-sql-driver/mysql"
 )
 
 type SQLQueue struct {
-	in  chan string
-	out chan map[string]interface{}
+	in         chan string
+	key        chan string
+	value      chan interface{}
+	DoneSignal chan struct{}
+}
+
+func mysql_real_escape_string(param string) string {
+	var sb strings.Builder
+	//Source: #789 escape_string_for_mysql https://github.com/mysql/mysql-server/blob/5.7/mysys/charset.c
+	for _, v := range []byte(param) {
+		switch v {
+		case '\n':
+			sb.WriteByte('\\')
+			sb.WriteByte('n')
+		case '\r':
+			sb.WriteByte('\\')
+			sb.WriteByte('r')
+		case 0:
+			sb.WriteByte('\\')
+			sb.WriteByte('0')
+		case '\\':
+			sb.WriteByte('\\')
+			sb.WriteByte('\\')
+		case '\'':
+			sb.WriteByte('\\')
+			sb.WriteByte('\'')
+		case '"':
+			sb.WriteByte('\\')
+			sb.WriteByte('"')
+		case '\032':
+			sb.WriteByte('\\') /* This gives problems on Win32 */
+			sb.WriteByte('Z')
+		default:
+			sb.WriteByte(v)
+		}
+	}
+	return sb.String()
 }
 
 //Read-only Channel: in
 //Send-only Channel: out
-func NewMySQLQueue(addr, port, user, password, db string, sysSignal <-chan struct{}) SQLQueue {
+func NewMySQLQueue(addr, port, user, password, db string, sysSignal <-chan struct{}) *SQLQueue {
 	in := make(chan string)
-	out := make(chan map[string]interface{})
-	go func(in <-chan string, out chan<- map[string]interface{}) {
+	key := make(chan string)
+	value := make(chan interface{})
+	DoneSignal := make(chan struct{})
+	go func(in chan string, key chan string, value chan interface{}, DoneSignal chan struct{}) {
 		var columns []string
 		var count int
 
 		db, err := sql.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8", user, password, addr, port, db))
 		defer db.Close()
 		if err != nil {
-			return
+			log.Fatal(err)
 		}
 		for {
 			select {
-			case v, ok := <-in:
-				if !ok {
-					return
-				}
+			case v := <-in:
 				query, err := db.Query(v)
 				if err != nil {
-					out <- nil
+					log.Fatal(err)
 				}
 				//I don't want to write this code.However,it's necessary
 				//And these slices are dynamic.I think there's no way to optimize them.
@@ -43,58 +79,38 @@ func NewMySQLQueue(addr, port, user, password, db string, sysSignal <-chan struc
 				count = len(columns)
 				values := make([]interface{}, count)
 				valuePtrs := make([]interface{}, count)
-				var retmap map[string]interface{}
 				for query.Next() {
 					for i := range columns {
 						valuePtrs[i] = &values[i]
 					}
-					rows.Scan(valuePtrs...)
+					query.Scan(valuePtrs...)
 					for i, col := range columns {
-						//Type assertions
-						//Fuck U
-						switch v := values[i].(type) {
-							case int:
-								retmap[col] = values[i].(int)
-							case int32:
-								retmap[col] = values[i].(int32)
-							case int64:
-								retmap[col] = values[i].(int64)
-							case string:
-								retmap[col] = values[i].(string)
-							case float32:
-								retmap[col] = values[i].(float32)
-							case float64:
-								retmap[col] = values[i].(float64)
-							case uint:
-								retmap[col] = values[i].(uint)
-							case uint32:
-								retmap[col] = values[i].(uint32)
-							case uint64:
-								retmap[col] = values[i].(uint64)
-
-							default:
-								retmap[col] = values[i].(interface{})
-						}
-						retmap = append(retmap, retmap[col])
+						value <- values[i]
+						key <- col
 					}
-
-					out <- retmap
 				}
+
 				//Clear slices and free resources.
 				values = nil
 				valuePtrs = nil
 				query.Close()
+				DoneSignal <- struct{}{}
+				value <- nil
+				key <- ""
+				
+
 			case <-sysSignal:
 				return
 			}
 
-
 		}
-	}(in, out)
+	}(in, key, value, DoneSignal)
 
 	return &SQLQueue{
-		in:  in,
-		out: out,
+		in:         in,
+		key:        key,
+		value:      value,
+		DoneSignal: DoneSignal,
 	}
 }
 
@@ -106,7 +122,30 @@ func NewMySQLQueue(addr, port, user, password, db string, sysSignal <-chan struc
 //3. Call Query
 //for i,v := range client.Query(SQL)
 
-func (s *SQLQueue) Query(SQL string) chan<- map[string]interface{} {
+func (s *SQLQueue) Query(SQL string)  map[int]map[string]string {
 	s.in <- SQL
-	return <-s.out
+	count := 0
+	var MapSlice = map[int]map[string]string{}
+	for {
+		select {
+		case <-s.DoneSignal:
+			return MapSlice
+		case val := <-s.value:
+			MapSlice[count] = map[string]string{}
+			key := <-s.key
+			switch v := val.(type) {
+			case []byte:
+				MapSlice[count][key] = string(v)
+			default:
+				MapSlice[count][key] = ""
+
+			}
+			
+			count++
+		}
+
+	}
+
+	return MapSlice
+
 }

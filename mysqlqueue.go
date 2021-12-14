@@ -8,8 +8,8 @@ import (
 )
 
 type SQLQueue struct {
-	in  <-chan string
-	out chan<- map[string]interface{}
+	in  chan string
+	out chan map[string]interface{}
 }
 
 //Read-only Channel: in

@@ -132,11 +132,12 @@ func (s *SQLQueue) Query(SQL string)  map[int]map[string]string {
 			return MapSlice
 		case val := <-s.value:
 			//Empty interface{}
-			if val == nil {
+			key := <-s.key
+			if val == nil || key == "" {
 				return MapSlice
 			}
 			MapSlice[count] = map[string]string{}
-			key := <-s.key
+			
 			switch v := val.(type) {
 			case []byte:
 				MapSlice[count][key] = string(v)

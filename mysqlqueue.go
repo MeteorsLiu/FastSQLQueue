@@ -95,7 +95,7 @@ func NewMySQLQueue(addr, port, user, password, db string, sysSignal <-chan struc
 				valuePtrs = nil
 				query.Close()
 				DoneSignal <- struct{}{}
-				value <- nil
+				value <- interface{}
 				key <- ""
 				
 
@@ -131,6 +131,10 @@ func (s *SQLQueue) Query(SQL string)  map[int]map[string]string {
 		case <-s.DoneSignal:
 			return MapSlice
 		case val := <-s.value:
+			//Empty interface{}
+			if val == nil {
+				return MapSlice
+			}
 			MapSlice[count] = map[string]string{}
 			key := <-s.key
 			switch v := val.(type) {

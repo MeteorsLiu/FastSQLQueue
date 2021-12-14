@@ -106,7 +106,7 @@ func NewMySQLQueue(addr, port, user, password, db string, sysSignal <-chan struc
 //3. Call Query
 //for i,v := range client.Query(SQL)
 
-func (s *SQLQueue) Query(SQL string) map[string]interface{} {
+func (s *SQLQueue) Query(SQL string) chan<- map[string]interface{} {
 	s.in <- SQL
-	return <-out
+	return <-s.out
 }

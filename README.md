@@ -10,7 +10,7 @@ A Simple MySQL Queue for Golang
 
 A,B,C三人同时请求
 
-那么A或B或C随机一方的SQL被后台的Goroutine接收，开始执行任务，而Channel一旦被接收后，由于case里面代码仍未执行完毕，因此Channel又可处于发送状态，又可以发送，但发送过后由于后台Goroutine仍未完成请求，因此会被暂停接收，这样达到了前面排队的目的。而出channel是为了确保数据唯一。
+那么A或B或C随机一方的SQL被后台的Goroutine接收，开始执行任务，而Channel一旦被接收后，由于case里面代码仍未执行完毕，因此Channel又可处于发送状态，又可以发送，但发送过后由于后台Goroutine仍未完成请求，因此会被暂停接收，直到任务完成为止，才重新开始继续接收，这样达到了前面排队的目的。而出channel是为了确保数据唯一。
 
 # 有待优化
 

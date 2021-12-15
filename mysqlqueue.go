@@ -4,8 +4,8 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
-	"runtime"
 	"strings"
+	"sync"
 
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -16,6 +16,7 @@ type SQLQueue struct {
 	value      chan interface{}
 	ListSignal chan struct{}
 	DoneSignal chan struct{}
+	safeLock   *sync.Mutex
 }
 
 func mysql_real_escape_string(param string) string {
@@ -59,6 +60,7 @@ func NewMySQLQueue(addr, port, user, password, db string, sysSignal <-chan struc
 	value := make(chan interface{})
 	ListSignal := make(chan struct{})
 	DoneSignal := make(chan struct{})
+	var Lock sync.Mutex
 	go func(in chan string, key chan string, value chan interface{}, ListSignal chan struct{}, DoneSignal chan struct{}) {
 		var columns []string
 		var count int
@@ -116,6 +118,7 @@ func NewMySQLQueue(addr, port, user, password, db string, sysSignal <-chan struc
 		value:      value,
 		ListSignal: ListSignal,
 		DoneSignal: DoneSignal,
+		safeLock:   &Lock,
 	}
 }
 
@@ -128,7 +131,8 @@ func NewMySQLQueue(addr, port, user, password, db string, sysSignal <-chan struc
 //for i,v := range client.Query(SQL)
 
 func (s SQLQueue) Query(SQL string) ([]map[string]string, error) {
-	runtime.Gosched()
+	s.safeLock.Lock()
+	defer s.safeLock.Unlock()
 	s.in <- SQL
 	var tempMap = map[string]string{}
 	var MapSlice = []map[string]string{}
@@ -161,7 +165,8 @@ func (s SQLQueue) Query(SQL string) ([]map[string]string, error) {
 }
 
 func (s SQLQueue) Exec(SQL string) error {
-	runtime.Gosched()
+	s.safeLock.Lock()
+	defer s.safeLock.Unlock()
 	s.in <- SQL
 	for {
 		select {

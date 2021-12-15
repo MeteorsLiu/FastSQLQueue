@@ -31,6 +31,6 @@ func BindParam(SQL, Type string, args ...interface{}) (string, error) {
 		args[i] = Mysql_real_escape_string(v)
 	}
 
-	return fmt.Sprint(sb.String(), args...), nil
+	return fmt.Sprintf(sb.String(), args...), nil
 
 }

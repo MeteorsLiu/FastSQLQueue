@@ -3,21 +3,21 @@ package mysqlqueue
 import (
 	"fmt"
 	"strings"
+	"errors"
 )
 
 
 
 
 
-func BindParam(SQL, Type string, args ...interface{}) {
-	TypeLength := len(Type)
+func BindParam(SQL, Type string, args ...interface{}) (string, error) {
+	TypeLength := len(Type)-1 
 	var sb strings.Builder
 	flag := 0
 	for _, v := range SQL {
 		if flag > TypeLength {
-			break
+			return "", errors.New("Out of indexs")
 		}
-
 		if v == '?' {
 			sb.WriteString("'%")
 			sb.WriteByte(Type[flag])
@@ -25,13 +25,12 @@ func BindParam(SQL, Type string, args ...interface{}) {
 			flag++
 		} else {
 			sb.WriteRune(v)
-
 		}
 	}
 	for i, v := range args {
 		args[i] = Mysql_real_escape_string(v)
 	}
 
-	return fmt.Sprint(sb.String(), args...)
+	return fmt.Sprint(sb.String(), args...), nil
 
 }

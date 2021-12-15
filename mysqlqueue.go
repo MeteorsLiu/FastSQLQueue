@@ -67,6 +67,8 @@ func NewMySQLQueue(addr, port, user, password, db string, sysSignal <-chan struc
 
 		db, err := sql.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8", user, password, addr, port, db))
 		defer db.Close()
+		//Ensure sender goroutine exits when this goroutine exits unexpectedly
+		defer close(DoneSignal)
 		if err != nil {
 			//连都连不上还处理蛇皮
 			log.Fatal(err)

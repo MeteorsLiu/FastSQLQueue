@@ -51,8 +51,21 @@ BindParam()
 
 举个例子
 
-
 `SQL, err := mysqlqueue.BindParam("SELECT name FROM test WHERE ID=?", "d", id)`
+
+**解释**
+
+?为代表绑定参数的
+
+d代表绑定参数类型，遵循Golang Sprintf Format格式
+
+d/i为int
+
+s为string
+
+id为要绑定的变量
+
+具体用法和PHP Bind Param一致
 
 **务必判断err不为nil**
 

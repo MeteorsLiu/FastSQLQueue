@@ -1,3 +1,3 @@
 module github.com/MeteorsLiu/MySQLQueue
 
-go 1.6
+go 1.10

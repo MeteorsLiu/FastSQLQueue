@@ -4,8 +4,9 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
-	"strings"
 	"runtime"
+	"strings"
+
 	_ "github.com/go-sql-driver/mysql"
 )
 
@@ -65,6 +66,7 @@ func NewMySQLQueue(addr, port, user, password, db string, sysSignal <-chan struc
 		db, err := sql.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8", user, password, addr, port, db))
 		defer db.Close()
 		if err != nil {
+			//连都连不上还处理蛇皮
 			log.Fatal(err)
 		}
 		for {
@@ -72,30 +74,32 @@ func NewMySQLQueue(addr, port, user, password, db string, sysSignal <-chan struc
 			case v := <-in:
 				query, err := db.Query(v)
 				if err != nil {
-					log.Fatal(err)
+					value <- err
+					continue
 				}
 				//I don't want to write this code.However,it's necessary
 				//And these slices are dynamic.I think there's no way to optimize them.
 				//Source: https://stackoverflow.com/questions/17845619/how-to-call-the-scan-variadic-function-using-reflection
 				columns, _ = query.Columns()
 				count = len(columns)
-				values := make([]interface{}, count)
-				valuePtrs := make([]interface{}, count)
-				for query.Next() {
-					for i := range columns {
-						valuePtrs[i] = &values[i]
+				if count > 0 {
+					values := make([]interface{}, count)
+					valuePtrs := make([]interface{}, count)
+					for query.Next() {
+						for i := range columns {
+							valuePtrs[i] = &values[i]
+						}
+						query.Scan(valuePtrs...)
+						for i, col := range columns {
+							value <- values[i]
+							key <- col
+						}
+						ListSignal <- struct{}{}
 					}
-					query.Scan(valuePtrs...)
-					for i, col := range columns {
-						value <- values[i]
-						key <- col
-					}
-					ListSignal <- struct{}{}
+					//Clear slices and free resources.
+					values = nil
+					valuePtrs = nil
 				}
-
-				//Clear slices and free resources.
-				values = nil
-				valuePtrs = nil
 				query.Close()
 				DoneSignal <- struct{}{}
 
@@ -123,7 +127,7 @@ func NewMySQLQueue(addr, port, user, password, db string, sysSignal <-chan struc
 //3. Call Query
 //for i,v := range client.Query(SQL)
 
-func (s SQLQueue) Query(SQL string)  []map[string]string {
+func (s SQLQueue) Query(SQL string) ([]map[string]string, error) {
 	runtime.Gosched()
 	s.in <- SQL
 	var tempMap = map[string]string{}
@@ -131,17 +135,19 @@ func (s SQLQueue) Query(SQL string)  []map[string]string {
 	for {
 		select {
 		case <-s.DoneSignal:
-			return MapSlice
+			return MapSlice, nil
 		case <-s.ListSignal:
 			MapSlice = append(MapSlice, tempMap)
 			tempMap = map[string]string{}
 		case val := <-s.value:
 			//Empty interface{}
 			key := <-s.key
-			
+
 			switch v := val.(type) {
 			case []byte:
 				tempMap[key] = string(v)
+			case error:
+				return nil, v
 			default:
 				tempMap[key] = ""
 
@@ -150,7 +156,29 @@ func (s SQLQueue) Query(SQL string)  []map[string]string {
 		}
 
 	}
+	return MapSlice, nil
 
-	return MapSlice
+}
+
+func (s SQLQueue) Exec(SQL string) error {
+	runtime.Gosched()
+	s.in <- SQL
+	for {
+		select {
+		case <-s.DoneSignal:
+			return nil
+		case val := <-s.value:
+			//By default, no value will be received
+			switch v := val.(type) {
+			case error:
+				return v
+			default:
+				return nil
+			}
+		}
+
+	}
+
+	return nil
 
 }

@@ -207,6 +207,7 @@ func (s SQLQueue) Query(SQL string) ([]map[string]string, error) {
 			case error:
 				return nil, v
 			default:
+				key := <-s.key
 				tempMap[key] = ""
 
 			}

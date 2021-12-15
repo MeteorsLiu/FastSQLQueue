@@ -3,7 +3,6 @@ package mysqlqueue
 import (
 	"database/sql"
 	"fmt"
-	"log"
 	"strings"
 	"sync"
 
@@ -18,7 +17,8 @@ type SQLQueue struct {
 	DoneSignal chan struct{}
 	safeLock   *sync.Mutex
 }
-// MySQL Params Escape 
+
+// MySQL Params Escape
 // For Safety, please call this function when you call Query
 // MySQL字符串过滤，由于Golang MySQLDriver没有内置，因而自己参考MySQL的C库写了一个
 // 为了安全，请务必在调用Query前调用这个函数过滤字符串
@@ -200,11 +200,9 @@ func (s SQLQueue) Query(SQL string) ([]map[string]string, error) {
 			MapSlice = append(MapSlice, tempMap)
 			tempMap = map[string]string{}
 		case val := <-s.value:
-			//Empty interface{}
-			key := <-s.key
-
 			switch v := val.(type) {
 			case []byte:
+				key := <-s.key
 				tempMap[key] = string(v)
 			case error:
 				return nil, v

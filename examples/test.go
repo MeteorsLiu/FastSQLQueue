@@ -16,7 +16,7 @@ func main() {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		sql, _ := Client.Query(fmt.Sprintf("SELECT text FROM test WHERE name='%s'", Queue.mysql_real_escape_string("TestES")))
+		sql, _ := Client.Query(fmt.Sprintf("SELECT text FROM test WHERE name='%s'", Queue.Mysql_real_escape_string("TestES")))
 		for _, v := range sql {
 			fmt.Println(v["text"])
 		}
@@ -26,7 +26,7 @@ func main() {
 
 	go func() {
 		defer wg.Done()
-		sql, _ := Client.Query(fmt.Sprintf("SELECT text FROM test WHERE name='%s'", Queue.mysql_real_escape_string("TestES")))
+		sql, _ := Client.Query(fmt.Sprintf("SELECT text FROM test WHERE name='%s'", Queue.Mysql_real_escape_string("TestES")))
 		for _, v := range sql {
 			fmt.Println(v["text"])
 		}

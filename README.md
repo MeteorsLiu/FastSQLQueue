@@ -6,7 +6,8 @@ A Simple MySQL Queue for Golang
 1. Thread Safe
 2. High Performance and fast
 3. Lightweight
-4. SQL Queue
+4. SQL Queue and re-format to Map type
+5. Easy to use
 
 
 # 设计思路

@@ -52,7 +52,9 @@ BindParam()
 举个例子
 
 
-`SQL := mysqlqueue.BindParam("SELECT name FROM test WHERE ID=?", "d", id)`
+`SQL, err := mysqlqueue.BindParam("SELECT name FROM test WHERE ID=?", "d", id)`
+
+**务必判断err不为nil**
 
 是不是很像PHP Bind Params?
 

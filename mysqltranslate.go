@@ -32,6 +32,6 @@ func FormatSQLAndEscape(SQL, Type string, args ...interface{}) {
 		args[i] = Mysql_real_escape_string(v)
 	}
 
-	fmt.Printf(sb.String(), args...)
+	return fmt.Println(sb.String(), args...)
 
 }

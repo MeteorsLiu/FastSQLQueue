@@ -30,11 +30,86 @@ A,B,C三人同时请求
 
 ~~1. Query会新产生map，这是完全可以避免的~~
 
-2. 没有Context
+~~2. 没有Context~~
 
 3. 每一个查询请求都会产生两个slices，无疑增大GoGC压力，想办法解决中
 
 # 文档
 
+## 使用方法
 
-https://pkg.go.dev/github.com/MeteorsLiu/MySQLQueue
+`ctx := context.WithCancel(context.Backgroud)`
+`Client := mysqlqueue.NewMySQLQueue(...各种参数, ctx)`
+
+为了更贴合PHP Prepare 语句
+
+我提供了一个函数来格式化SQL
+
+BindParam()
+
+
+举个例子
+
+
+`SQL := mysqlqueue.BindParam("SELECT name FROM test WHERE ID=?", "d", id)`
+
+是不是很像PHP Bind Params?
+
+还有更像的
+
+格式化URL后可以直接调用了
+
+`Result, err := Client.Query(SQL)`
+
+使用之前务必判断err是否等于nil哦
+
+`
+for _, val := range Result {
+  val[行名(Column Name)] = 对应的值
+}
+`
+
+是不是很像PHP的Fetch Assoc？
+
+哈哈，我喜欢PHP，我写golang时候都想着它
+
+那么如何换db？
+
+首先先关闭goroutine，我提供了ctx来方便用户关闭
+
+`cancel()`
+
+即可
+
+
+
+# 参数解释
+
+NewMySQLQueue函数:
+
+addr MySQL Server Addr
+
+port MySQL Server Port
+
+user MySQL User
+
+password MySQL Password
+
+db MySQL Database
+
+Query:
+
+SQL 格式化好的字符串
+
+返回值：多个Map
+
+Exec:
+
+SQL 格式化好的字符串
+
+返回值：nil(空)
+
+BindParam():
+
+用法见上
+

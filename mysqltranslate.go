@@ -9,7 +9,7 @@ import (
 
 
 
-func FormatSQLAndEscape(SQL, Type string, args ...interface{}) {
+func BindParam(SQL, Type string, args ...interface{}) {
 	TypeLength := len(Type)
 	var sb strings.Builder
 	flag := 0
@@ -32,6 +32,6 @@ func FormatSQLAndEscape(SQL, Type string, args ...interface{}) {
 		args[i] = Mysql_real_escape_string(v)
 	}
 
-	return fmt.Println(sb.String(), args...)
+	fmt.Printf(sb.String(), args...)
 
 }

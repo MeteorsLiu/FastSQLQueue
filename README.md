@@ -1,6 +1,13 @@
 # FastSQLQueue
 A Simple MySQL Queue for Golang
 
+# Feature
+
+1. Thread Safe
+2. High Performance and fast
+3. Lightweight
+4. SQL Queue
+
 
 # 设计思路
 

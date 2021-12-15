@@ -38,8 +38,9 @@ A,B,C三人同时请求
 
 ## 使用方法
 
-`ctx := context.WithCancel(context.Backgroud)`
-`Client := mysqlqueue.NewMySQLQueue(...各种参数, ctx)`
+`ctx := context.WithCancel(context.Backgroud)
+
+Client := mysqlqueue.NewMySQLQueue(...各种参数, ctx)`
 
 为了更贴合PHP Prepare 语句
 

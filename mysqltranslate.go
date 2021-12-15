@@ -12,10 +12,14 @@ import (
 
 func BindParam(SQL, Type string, args ...interface{}) (string, error) {
 	TypeLength := len(Type)-1 
+	ArgsLength := len(args)-1
+	if (ArgsLength != TypeLength) {
+		return "", errors.New("Out of indexs")
+	}
 	var sb strings.Builder
 	flag := 0
 	for _, v := range SQL {
-		if flag > TypeLength {
+		if flag > TypeLength  {
 			return "", errors.New("Out of indexs")
 		}
 		if v == '?' {
@@ -31,6 +35,6 @@ func BindParam(SQL, Type string, args ...interface{}) (string, error) {
 		args[i] = Mysql_real_escape_string(v)
 	}
 
-	return fmt.Sprintf(sb.String(), args...), nil
+	return fmt.Sprint(sb.String(), args...), nil
 
 }

@@ -13,6 +13,7 @@ A Simple MySQL Queue for Golang
 # 设计思路
 
 利用Channel特性，完成多Goroutine下排队读写的问题，一个Channel两端会有任意一方被block，直到任务完成为止
+
 在Golang设计中，Channel是一个阻塞的FIFO队列，但goroutine是无序的，尽管channel是队列，但仍不知道哪个goroutine会优先
 
 例如：

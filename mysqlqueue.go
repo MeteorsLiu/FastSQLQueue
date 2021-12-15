@@ -118,7 +118,7 @@ func NewMySQLQueue(addr, port, user, password, db string, ctx context.Context) S
 			}
 
 		}
-	}(in, key, ialue, ListSignal, DoneSignal)
+	}(in, key, value, ListSignal, DoneSignal)
 
 	return SQLQueue{
 		In:         in,

@@ -30,7 +30,10 @@ func BindParam(SQL, Type string, args ...interface{}) (string, error) {
 		}
 	}
 	for i, v := range args {
-		args[i] = Mysql_real_escape_string(v)
+		switch val := v.(type) {
+		case string:
+			args[i] = Mysql_real_escape_string(val)
+		}
 	}
 
 	return fmt.Sprintf(sb.String(), args...), nil

@@ -36,3 +36,5 @@ A,B,C三人同时请求
 
 # 文档
 
+
+https://pkg.go.dev/github.com/MeteorsLiu/MySQLQueue

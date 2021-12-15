@@ -81,21 +81,23 @@ for _, val := range Result {
 
 即可
 
+然后再重复
+
+`Client = mysqlqueue.NewMySQLQueue(...各种参数, ctx)`
+
+
+
 
 
 # 参数解释
 
 NewMySQLQueue函数:
 
-addr MySQL Server Addr
-
-port MySQL Server Port
-
-user MySQL User
-
-password MySQL Password
-
-db MySQL Database
+`addr MySQL Server Addr`
+`port MySQL Server Port`
+`user MySQL User`
+`password MySQL Password`
+`db MySQL Database`
 
 Query:
 

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 	"strings"
-
+	"runtime"
 	_ "github.com/go-sql-driver/mysql"
 )
 
@@ -13,6 +13,7 @@ type SQLQueue struct {
 	in         chan string
 	key        chan string
 	value      chan interface{}
+	ListSignal chan struct{}
 	DoneSignal chan struct{}
 }
 
@@ -51,12 +52,13 @@ func mysql_real_escape_string(param string) string {
 
 //Read-only Channel: in
 //Send-only Channel: out
-func NewMySQLQueue(addr, port, user, password, db string, sysSignal <-chan struct{}) *SQLQueue {
+func NewMySQLQueue(addr, port, user, password, db string, sysSignal <-chan struct{}) SQLQueue {
 	in := make(chan string)
 	key := make(chan string)
 	value := make(chan interface{})
+	ListSignal := make(chan struct{})
 	DoneSignal := make(chan struct{})
-	go func(in chan string, key chan string, value chan interface{}, DoneSignal chan struct{}) {
+	go func(in chan string, key chan string, value chan interface{}, ListSignal chan struct{}, DoneSignal chan struct{}) {
 		var columns []string
 		var count int
 
@@ -88,6 +90,7 @@ func NewMySQLQueue(addr, port, user, password, db string, sysSignal <-chan struc
 						value <- values[i]
 						key <- col
 					}
+					ListSignal <- struct{}{}
 				}
 
 				//Clear slices and free resources.
@@ -95,21 +98,19 @@ func NewMySQLQueue(addr, port, user, password, db string, sysSignal <-chan struc
 				valuePtrs = nil
 				query.Close()
 				DoneSignal <- struct{}{}
-				value <- interface{}
-				key <- ""
-				
 
 			case <-sysSignal:
 				return
 			}
 
 		}
-	}(in, key, value, DoneSignal)
+	}(in, key, value, ListSignal, DoneSignal)
 
-	return &SQLQueue{
+	return SQLQueue{
 		in:         in,
 		key:        key,
 		value:      value,
+		ListSignal: ListSignal,
 		DoneSignal: DoneSignal,
 	}
 }
@@ -122,31 +123,30 @@ func NewMySQLQueue(addr, port, user, password, db string, sysSignal <-chan struc
 //3. Call Query
 //for i,v := range client.Query(SQL)
 
-func (s *SQLQueue) Query(SQL string)  map[int]map[string]string {
+func (s SQLQueue) Query(SQL string)  []map[string]string {
+	runtime.Gosched()
 	s.in <- SQL
-	count := 0
-	var MapSlice = map[int]map[string]string{}
+	var tempMap = map[string]string{}
+	var MapSlice = []map[string]string{}
 	for {
 		select {
 		case <-s.DoneSignal:
 			return MapSlice
+		case <-s.ListSignal:
+			MapSlice = append(MapSlice, tempMap)
+			tempMap = map[string]string{}
 		case val := <-s.value:
 			//Empty interface{}
 			key := <-s.key
-			if val == nil || key == "" {
-				return MapSlice
-			}
-			MapSlice[count] = map[string]string{}
 			
 			switch v := val.(type) {
 			case []byte:
-				MapSlice[count][key] = string(v)
+				tempMap[key] = string(v)
 			default:
-				MapSlice[count][key] = ""
+				tempMap[key] = ""
 
 			}
-			
-			count++
+
 		}
 
 	}

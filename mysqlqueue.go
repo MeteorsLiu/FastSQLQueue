@@ -105,7 +105,8 @@ func NewMySQLQueue(addr, port, user, password, db string, sysSignal <-chan struc
 		defer close(DoneSignal)
 		if err != nil {
 			//连都连不上还处理蛇皮
-			log.Fatal(err)
+			value <- err
+			return
 		}
 		for {
 			select {

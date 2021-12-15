@@ -22,7 +22,7 @@ type SQLQueue struct {
 // For Safety, please call this function when you call Query
 // MySQL字符串过滤，由于Golang MySQLDriver没有内置，因而自己参考MySQL的C库写了一个
 // 为了安全，请务必在调用Query前调用这个函数过滤字符串
-func mysql_real_escape_string(param string) string {
+func Mysql_real_escape_string(param string) string {
 	var sb strings.Builder
 	//Source: #789 escape_string_for_mysql https://github.com/mysql/mysql-server/blob/5.7/mysys/charset.c
 	for _, v := range []byte(param) {

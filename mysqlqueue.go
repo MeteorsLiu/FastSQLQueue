@@ -11,12 +11,12 @@ import (
 )
 
 type SQLQueue struct {
-	in         chan string
-	key        chan string
-	value      chan interface{}
+	In         chan string
+	Key        chan string
+	Value      chan interface{}
 	ListSignal chan struct{}
 	DoneSignal chan struct{}
-	safeLock   *sync.Mutex
+	SafeLock   *sync.Mutex
 }
 
 // MySQL Params Escape
@@ -76,7 +76,6 @@ func NewMySQLQueue(addr, port, user, password, db string, ctx context.Context) S
 		//Ensure sender goroutine exits when this goroutine exits unexpectedly
 		defer close(DoneSignal)
 		if err != nil {
-			//连都连不上还处理蛇皮
 			value <- err
 			return
 		}
@@ -119,23 +118,23 @@ func NewMySQLQueue(addr, port, user, password, db string, ctx context.Context) S
 			}
 
 		}
-	}(in, key, value, ListSignal, DoneSignal)
+	}(in, key, ialue, ListSignal, DoneSignal)
 
 	return SQLQueue{
-		in:         in,
-		key:        key,
-		value:      value,
+		In:         in,
+		Key:        key,
+		Value:      value,
 		ListSignal: ListSignal,
 		DoneSignal: DoneSignal,
-		safeLock:   &Lock,
+		SafeLock:   &Lock,
 	}
 }
 
 
 func (s SQLQueue) Query(SQL string) ([]map[string]string, error) {
-	s.safeLock.Lock()
-	defer s.safeLock.Unlock()
-	s.in <- SQL
+	s.SafeLock.Lock()
+	defer s.SafeLock.Unlock()
+	s.In <- SQL
 	var tempMap = map[string]string{}
 	var MapSlice = []map[string]string{}
 	for {
@@ -145,15 +144,15 @@ func (s SQLQueue) Query(SQL string) ([]map[string]string, error) {
 		case <-s.ListSignal:
 			MapSlice = append(MapSlice, tempMap)
 			tempMap = map[string]string{}
-		case val := <-s.value:
+		case val := <-s.Value:
 			switch v := val.(type) {
 			case []byte:
-				key := <-s.key
+				key := <-s.Key
 				tempMap[key] = string(v)
 			case error:
 				return nil, v
 			default:
-				key := <-s.key
+				key := <-s.Key
 				tempMap[key] = ""
 
 			}
@@ -168,14 +167,14 @@ func (s SQLQueue) Query(SQL string) ([]map[string]string, error) {
 
 
 func (s SQLQueue) Exec(SQL string) error {
-	s.safeLock.Lock()
-	defer s.safeLock.Unlock()
-	s.in <- SQL
+	s.SafeLock.Lock()
+	defer s.SafeLock.Unlock()
+	s.In <- SQL
 	for {
 		select {
 		case <-s.DoneSignal:
 			return nil
-		case val := <-s.value:
+		case val := <-s.Value:
 			//By default, no value will be received
 			switch v := val.(type) {
 			case error:

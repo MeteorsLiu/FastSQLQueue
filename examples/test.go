@@ -1,7 +1,7 @@
 package main
 
 import (
-	Queue "https://github.com/MeteorsLiu/MySQLQueue"
+	Queue "github.com/MeteorsLiu/MySQLQueue"
 	"fmt"
 	"sync"
 )

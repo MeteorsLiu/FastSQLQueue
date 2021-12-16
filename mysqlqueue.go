@@ -220,7 +220,7 @@ func (s SQLQueue) Query(SQL string) ([]map[string]string, error) {
 				return nil, v
 			default:
 				key := <-s.Key
-				tempMap[key] = ""
+				tempMap[key] = fmt.Sprintf("%v", v)
 
 			}
 

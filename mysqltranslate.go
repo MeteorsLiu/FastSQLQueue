@@ -49,7 +49,7 @@ func AutoBindParam(SQL, args ...interface{}) (string, error) {
 		if v == '?' {
 			if flag <= ArgsLength {
 				sb.WriteString("'")
-				switch val := args[i].(type) {
+				switch val := args[flag].(type) {
 				case string:
 					sb.WriteString(Mysql_real_escape_string(val))
 				case int, int8, int16, int32, int64:

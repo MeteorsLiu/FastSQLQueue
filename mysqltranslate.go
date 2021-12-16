@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
+	"strconv"
 )
 
 func BindParam(SQL, Type string, args ...interface{}) (string, error) {

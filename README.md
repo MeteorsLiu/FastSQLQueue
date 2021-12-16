@@ -38,9 +38,8 @@ A,B,C三人同时请求
 
 ## 使用方法
 
-`ctx := context.WithCancel(context.Backgroud)
-
-Client := mysqlqueue.NewMySQLQueue(...各种参数, ctx)`
+`ctx := context.WithCancel(context.Backgroud)`
+`Client := mysqlqueue.NewMySQLQueue(...各种参数, ctx)`
 
 为了更贴合PHP Prepare 语句
 
@@ -48,10 +47,16 @@ Client := mysqlqueue.NewMySQLQueue(...各种参数, ctx)`
 
 BindParam()
 
+和
+
+AutoBindParam()
+
 
 举个例子
 
 `SQL, err := mysqlqueue.BindParam("SELECT name FROM test WHERE ID=?", "d", id)`
+
+`SQL, err := mysqlqueue.AutoBindParam("SELECT name FROM test WHERE ID=?", id)`
 
 **解释**
 
@@ -66,6 +71,8 @@ s为string
 id为要绑定的变量
 
 具体用法和PHP Bind Param一致
+
+AutoBindParam则和原生sql库差不多，不需要写类型
 
 **务必判断err不为nil**
 

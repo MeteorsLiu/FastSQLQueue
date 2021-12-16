@@ -60,11 +60,45 @@ func Mysql_real_escape_string(param string) string {
 }
 
 
-func Mysql_real_escape_byte(param []byte) string {
+func Mysql_real_escape_bytes(param []byte) string {
 	var sb strings.Builder
 	//Source: #789 escape_string_for_mysql https://github.com/mysql/mysql-server/blob/5.7/mysys/charset.c
 	for _, v := range param {
 		switch v {
+		case '\n':
+			sb.WriteByte('\\')
+			sb.WriteByte('n')
+		case '\r':
+			sb.WriteByte('\\')
+			sb.WriteByte('r')
+		case 0:
+			sb.WriteByte('\\')
+			sb.WriteByte('0')
+		case '\\':
+			sb.WriteByte('\\')
+			sb.WriteByte('\\')
+		case '\'':
+			sb.WriteByte('\\')
+			sb.WriteByte('\'')
+		case '"':
+			sb.WriteByte('\\')
+			sb.WriteByte('"')
+		case '\032':
+			sb.WriteByte('\\') /* This gives problems on Win32 */
+			sb.WriteByte('Z')
+		default:
+			sb.WriteByte(v)
+		}
+	}
+	return sb.String()
+}
+
+
+func Mysql_real_escape_byte(param byte) string {
+	var sb strings.Builder
+	//Source: #789 escape_string_for_mysql https://github.com/mysql/mysql-server/blob/5.7/mysys/charset.c
+	
+	switch v {
 		case '\n':
 			sb.WriteByte('\\')
 			sb.WriteByte('n')

@@ -98,7 +98,7 @@ func Mysql_real_escape_byte(param byte) string {
 	var sb strings.Builder
 	//Source: #789 escape_string_for_mysql https://github.com/mysql/mysql-server/blob/5.7/mysys/charset.c
 	
-	switch v {
+	switch param {
 		case '\n':
 			sb.WriteByte('\\')
 			sb.WriteByte('n')

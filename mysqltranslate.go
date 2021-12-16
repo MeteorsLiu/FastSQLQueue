@@ -60,9 +60,9 @@ func AutoBindParam(SQL, args ...interface{}) (string, error) {
 					sb.WriteString(Mysql_real_escape_string(strconv.FormatFloat(val, 'f', -1, 32))
 				case float64:
 					sb.WriteString(Mysql_real_escape_string(strconv.FormatFloat(val, 'f', -1, 64))
-				case Byte:
+				case byte, []byte:
 					sb.WriteString(Mysql_real_escape_byte(val))
-				case Rune:
+				case rune:
 					sb.WriteRune(val)
 
 				case Boolean:				

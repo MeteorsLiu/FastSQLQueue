@@ -3,7 +3,6 @@ package mysqlqueue
 import (
 	"errors"
 	"fmt"
-	"reflect"
 	"strings"
 )
 

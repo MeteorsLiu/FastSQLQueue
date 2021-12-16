@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
-	"strconv"
 	"strings"
 )
 
@@ -55,7 +54,7 @@ func AutoBindParam(SQL string, args ...interface{}) (string, error) {
 				case string:
 					sb.WriteString(Mysql_real_escape_string(val))
 				case int:
-					sb.WriteString(Mysql_real_escape_string(strconv.Itoa(val, 10)))
+					sb.WriteString(Mysql_real_escape_string(strconv.Itoa(val)))
 				case int8:
 					sb.WriteString(Mysql_real_escape_string(strconv.FormatInt(int64(val), 10)))
 				case int16:
@@ -81,7 +80,7 @@ func AutoBindParam(SQL string, args ...interface{}) (string, error) {
 					if reflect.TypeOf(val).String() == "uint8" {
 						sb.WriteString(Mysql_real_escape_string(strconv.FormatUint(uint64(val), 10)))
 					} else {
-						sb.WriteByte(Mysql_real_escape_string(val))
+						sb.WriteString(Mysql_real_escape_byte(val))
 					}
 				case rune:
 					if reflect.TypeOf(val).String() == "int32" {

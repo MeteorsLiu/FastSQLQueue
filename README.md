@@ -26,6 +26,35 @@ A,B,C三人同时请求
 
 没有多worker执行任务的功能，原因是作者明确说明了不允许多goroutine同时操作
 
+# 性能测试
+
+测试机器：
+
+中国香港腾讯云轻量(E5 26xx V4 1核心,2GB)
+
+测试MariaDB版本：
+10.2
+
+测试命令：`go test -bench .`
+
+测试函数
+
+`db.Query`
+
+`mysqlqueue中的Query`
+
+测试语句：`SELECT * FROM test`
+
+测试方法：固定10000次，不限时间
+
+测试结果：
+
+本库的Query完成一万次仅需要0.8s
+
+db.Query需要2.5s
+
+是原生库的三倍
+
 # 有待优化
 
 ~~1. Query会新产生map，这是完全可以避免的~~

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"strconv"
 )
 
 func BindParam(SQL, Type string, args ...interface{}) (string, error) {

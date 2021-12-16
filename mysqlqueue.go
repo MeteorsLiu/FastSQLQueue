@@ -122,7 +122,6 @@ func Mysql_real_escape_byte(param byte) string {
 			sb.WriteByte('Z')
 		default:
 			sb.WriteByte(param)
-		}
 	}
 	return sb.String()
 }

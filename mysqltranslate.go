@@ -42,7 +42,7 @@ func BindParam(SQL, Type string, args ...interface{}) (string, error) {
 }
 
 
-func AutoBindParam(SQL, args ...interface{}) (string, error) {
+func AutoBindParam(SQL string, args ...interface{}) (string, error) {
 	ArgsLength := len(args) - 1
 
 	for i, v := range SQL {

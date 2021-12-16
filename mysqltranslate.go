@@ -3,6 +3,7 @@ package mysqlqueue
 import (
 	"errors"
 	"fmt"
+	"reflect"
 	"strings"
 )
 
@@ -76,9 +77,17 @@ func AutoBindParam(SQL string, args ...interface{}) (string, error) {
 				case []byte:
 					sb.WriteString(Mysql_real_escape_bytes(val))
 				case byte:
-					sb.WriteString(Mysql_real_escape_byte(val))
+					if reflect.TypeOf(val).String() == "uint8" {
+						sb.WriteString(Mysql_real_escape_string(strconv.FormatInt(int64(val), 10)))
+					} else {
+						sb.WriteByte(Mysql_real_escape_string(val))
+					}
 				case rune:
-					sb.WriteRune(val)
+					if reflect.TypeOf(val).String() == "int32" {
+						sb.WriteString(Mysql_real_escape_string(strconv.FormatInt(int64(val), 10)))
+					} else {
+						sb.WriteRune(val)
+					}
 
 				case bool:				
 					if val {

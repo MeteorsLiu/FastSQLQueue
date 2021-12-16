@@ -59,7 +59,7 @@ func AutoBindParam(SQL string, args ...interface{}) (string, error) {
 					}
 
 				default:
-					sb.WriteString(fmt.Sprintln(Mysql_real_escape_string(val)))
+					sb.WriteString(Mysql_real_escape_string(fmt.Sprintln(val)))
 				}
 				sb.WriteString("'")
 

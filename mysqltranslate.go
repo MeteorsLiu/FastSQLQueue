@@ -78,7 +78,7 @@ func AutoBindParam(SQL string, args ...interface{}) (string, error) {
 					sb.WriteString(Mysql_real_escape_bytes(val))
 				case byte:
 					if reflect.TypeOf(val).String() == "uint8" {
-						sb.WriteString(Mysql_real_escape_string(strconv.FormatInt(int64(val), 10)))
+						sb.WriteString(Mysql_real_escape_string(strconv.FormatUint(uint64(val), 10)))
 					} else {
 						sb.WriteByte(Mysql_real_escape_string(val))
 					}

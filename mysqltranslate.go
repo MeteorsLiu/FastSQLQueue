@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
-	"strconv"
 )
 
 func BindParam(SQL, Type string, args ...interface{}) (string, error) {
@@ -52,44 +51,6 @@ func AutoBindParam(SQL string, args ...interface{}) (string, error) {
 			if flag <= ArgsLength {
 				sb.WriteString("'")
 				switch val := args[flag].(type) {
-				case string:
-					sb.WriteString(Mysql_real_escape_string(val))
-				case int:
-					sb.WriteString(Mysql_real_escape_string(strconv.Itoa(val)))
-				case int8:
-					sb.WriteString(Mysql_real_escape_string(strconv.FormatInt(int64(val), 10)))
-				case int16:
-					sb.WriteString(Mysql_real_escape_string(strconv.FormatInt(int64(val), 10)))
-				case int64:
-					sb.WriteString(Mysql_real_escape_string(strconv.FormatInt(val, 10)))
-
-				case uint:
-					sb.WriteString(Mysql_real_escape_string(strconv.FormatUint(uint64(val), 10)))
-				case uint16:
-					sb.WriteString(Mysql_real_escape_string(strconv.FormatUint(uint64(val), 10)))
-				case uint32:
-					sb.WriteString(Mysql_real_escape_string(strconv.FormatUint(uint64(val), 10)))
-				case uint64:
-					sb.WriteString(Mysql_real_escape_string(strconv.FormatUint(val, 10)))
-				case float32:
-					sb.WriteString(Mysql_real_escape_string(strconv.FormatFloat(float64(val), 'f', -1, 32)))
-				case float64:
-					sb.WriteString(Mysql_real_escape_string(strconv.FormatFloat(val, 'f', -1, 64)))
-				case []byte:
-					sb.WriteString(Mysql_real_escape_bytes(val))
-				case byte:
-					if reflect.TypeOf(val).String() == "uint8" {
-						sb.WriteString(Mysql_real_escape_string(strconv.FormatUint(uint64(val), 10)))
-					} else {
-						sb.WriteString(Mysql_real_escape_byte(val))
-					}
-				case rune:
-					if reflect.TypeOf(val).String() == "int32" {
-						sb.WriteString(Mysql_real_escape_string(strconv.FormatInt(int64(val), 10)))
-					} else {
-						sb.WriteRune(val)
-					}
-
 				case bool:				
 					if val {
    						sb.WriteString("1")
@@ -98,7 +59,7 @@ func AutoBindParam(SQL string, args ...interface{}) (string, error) {
 					}
 
 				default:
-					return "", errors.New("Unknow Type")
+					sb.WriteString(fmt.Sprintln(Mysql_real_escape_string(val)))
 				}
 				sb.WriteString("'")
 

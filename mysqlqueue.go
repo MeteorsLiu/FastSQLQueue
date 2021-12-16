@@ -121,7 +121,7 @@ func Mysql_real_escape_byte(param byte) string {
 			sb.WriteByte('\\') /* This gives problems on Win32 */
 			sb.WriteByte('Z')
 		default:
-			sb.WriteByte(v)
+		return string(param)
 		}
 	}
 	return sb.String()

@@ -68,7 +68,7 @@ func AutoBindParam(SQL, args ...interface{}) (string, error) {
 				case rune:
 					sb.WriteRune(val)
 
-				case Boolean:				
+				case bool:				
 					if val {
    						sb.WriteString("1")
 					} else {

@@ -55,6 +55,22 @@ db.Query需要2.5s
 
 是原生库的三倍
 
+```
+goos: linux
+goarch: amd64
+pkg: github.com/MeteorsLiu/MySQLQueue
+cpu: Intel(R) Xeon(R) CPU E5-26xx v4
+BenchmarkDB        	   13640	     87177 ns/op
+BenchmarkFormat    	   14808	     83079 ns/op
+BenchmarkFor       	   14220	     88480 ns/op
+BenchmarkNative    	    3691	    282661 ns/op
+BenchmarkNativeFor 	    3542	    291724 ns/op
+PASS
+ok  	github.com/MeteorsLiu/MySQLQueue	9.224s
+```
+
+
+
 # 有待优化
 
 ~~1. Query会新产生map，这是完全可以避免的~~
